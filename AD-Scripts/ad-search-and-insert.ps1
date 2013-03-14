@@ -24,7 +24,7 @@ foreach ($objResult in $colResults)
 		
  }
 #Read in csv 
- $csv = Import-Csv c:\path\to\your.csv #Path to csv here
+ $csv = Import-Csv c:\Scripts\addusers.csv #Path to csv here
 foreach ($line in $csv) 
 {
 	$FirstNameFound = "false";
@@ -36,7 +36,7 @@ foreach ($line in $csv)
 		{
 			$FirstNameFound = "true";
 		}
-		i++
+		$i++
 		if ($line.surname -eq $ArrayOfExistingUsers[$i])
 		{
 			$LastNameFound = "true";
@@ -48,13 +48,15 @@ foreach ($line in $csv)
 		#New-Mailbox -Name $line.Name -WindowsLiveID $line.Email -ImportLiveId
 		$Class = "User"
 		$strUserName = "CN=" + $line.firstname + " " + $line.surname;
-		$objADSI = [ADSI]"LDAP://OU=Users,DC=groupl,DC=sqrawler,DC=com"
-		$objUser = $objADSI.Create($Class, $strUserName)
+		$objADSI = [ADSI]"LDAP://CN=Users,DC=groupl,DC=sqrawler,DC=com"
+		$objUser = $objADSI.create($Class, $strUserName)
 		$objUser.Put("samaccountname", $line.username)
-		$objUser.Put("password", $line.password)
 		$objUser.Put("givenname", $line.firstname)
 		$objUser.Put("sn", $line.surname)
 		$objUser.setInfo()
+		
+		$objUser.SetPassword($line.password);
+		$objUser.SetInfo  
 	}
 }
 

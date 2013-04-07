@@ -7,13 +7,17 @@ $objSearcher.PageSize = 1000
 $objSearcher.Filter = $strFilter
 $objSearcher.SearchScope = "Subtree"
 
+#properties to return from ad
 $colProplist = "name", "memberof", "samaccountname","givenname","sn"
+
 foreach ($i in $colPropList){$objSearcher.PropertiesToLoad.Add($i)}
 
 $colResults = $objSearcher.FindAll()
 
+#array to hold the existing users in ad
 $ArrayOfExistingUsers
 
+#fill the array with there names
 foreach ($objResult in $colResults)
 {
 	$objItem = $objResult.Properties; 
@@ -25,11 +29,15 @@ foreach ($objResult in $colResults)
  }
 #Read in csv 
  $csv = Import-Csv c:\Scripts\addusers.csv #Path to csv here
+ 
+ #for each line in the csv
 foreach ($line in $csv) 
 {
+	#Set values to be false for testing if exist
 	$FirstNameFound = "false";
 	$LastNameFound = "false";
 
+	#see if firstname and last name match any existing people and set found vars. 
 	for ($i=0; $i -lt $ArrayOfExistingUsers.length; $i++) 
 	{
 		if ($line.firstname -eq $ArrayOfExistingUsers[$i])
@@ -43,6 +51,7 @@ foreach ($line in $csv)
 		}
 	}
 	
+	#if the user doesn't exist the create them
 	if ($FirstNameFound -eq "false" -and $LastNameFound -eq "false")
 	{
 		#New-Mailbox -Name $line.Name -WindowsLiveID $line.Email -ImportLiveId
@@ -54,11 +63,8 @@ foreach ($line in $csv)
 		$objUser.Put("givenname", $line.firstname)
 		$objUser.Put("sn", $line.surname)
 		$objUser.setInfo()
-		
+		#set password for the user
 		$objUser.SetPassword($line.password);
 		$objUser.SetInfo  
 	}
 }
-
-
- $ArrayOfExistingUsers
